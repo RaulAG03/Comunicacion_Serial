@@ -2,10 +2,10 @@ import sys
 import glob
 import serial
 import time
-
 from tkinter import ttk
 import tkinter as tk
 from ttkthemes import ThemedTk
+
 
 #_________________________________________PUERTOS_COM____________________________________________________________________
 result = []
@@ -16,7 +16,7 @@ def serial_ports():
             A list of the serial ports avilable on the system
     """
     if sys.platform.startswith('win'):
-        ports = ['COM%s'%(i+1) for i in range (10)]
+        ports = ['COM%s'%(i+1) for i in range (5)]
     elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
         # this exclude your current terminal "/dev/tty"
         ports = glob.glob('/dev/tty[A-Za-z]*')
@@ -38,13 +38,15 @@ def serial_ports():
 #_________________________________________RECONFIGURACION DE PUERTOS COM_________________________________________________
 
 def config():
-    puerto_selec = COMcombo.get()
+    global puerto_seleccionado, velocidad_seleccionada 
+    puerto_seleccionado = COMcombo.get()
+    velocidad_seleccionada = velocidadCon.get()
+    print(velocidad_seleccionada)
     try:
-        ser = serial.Serial(puerto_selec)
+        ser = serial.Serial(puerto_seleccionado)
         ser.close()
         led_R.config(state="disabled")
         led_V.config(state="normal")
-        
         
     except serial.SerialException:
         led_R.config(state="normal")
@@ -52,14 +54,14 @@ def config():
    
 #________________________________________Habilitaion o Desasabiltacion de LEDs__________________________________________
 def Encender():
-    arduino = serial.Serial(port='COM5', baudrate=9600, timeout=.1)
+    arduino = serial.Serial(puerto_seleccionado, int(velocidad_seleccionada), timeout=0.1)
     time.sleep(2)
     print('led encendido')
     arduino.write(b'1')
     time.sleep(0.05)    
     
 def Apagar():
-    arduino = serial.Serial(port='COM5', baudrate=9600, timeout=.1)
+    arduino = serial.Serial(puerto_seleccionado, int(velocidad_seleccionada), timeout=0.1)
     time.sleep(2)
     print('led apagado')
     arduino.write(b'0')
@@ -101,7 +103,7 @@ def seleccion():
 
 def suma():
     print('suma')
-    arduino = serial.Serial('COM5', 9600, timeout=1)
+    arduino = serial.Serial(puerto_seleccionado, int(velocidad_seleccionada), timeout=0.1)
     time.sleep(2)
     
     numero=int(valor_suma.get())
@@ -115,7 +117,7 @@ def suma():
 #________________________________________Seleccion 2_____________________________________________________________________
 
 def convercion():
-    arduino = serial.Serial('COM5', 9600, timeout=1)
+    arduino = serial.Serial(puerto_seleccionado, int(velocidad_seleccionada), timeout=0.1)
     time.sleep(2) 
     arduino.write(b'LEER\n')
     
@@ -128,7 +130,7 @@ def convercion():
 
 def Pwm():
     print('inicio')
-    arduino = serial.Serial('COM5', 9600, timeout=1)
+    arduino = serial.Serial(puerto_seleccionado, int(velocidad_seleccionada), timeout=0.1)
     time.sleep(2)
     
     pwm = int(pwm_inten.get())
@@ -144,10 +146,6 @@ root = ThemedTk(theme='equilux' ) #creamos la ventana principal aplicando el tem
 root.title("PUERTO SERIAL") #colocamos el titulo de la ventana
 root.geometry('500x500') #dimensiones de la ventana principal 
 
-valor_1 = tk.StringVar()
-check_on_var = tk.IntVar()
-check_off_var = tk.IntVar()
-
 TabControl = ttk.Notebook(root)
 tab1 = ttk.Frame(TabControl)
 tab2 = ttk.Frame(TabControl)
@@ -160,14 +158,13 @@ current_value = tk.StringVar()
 #_______________________________________________TAB1___________________________________________________________________
 detectar = ttk.Button(tab1, text="detectar puerto COM", command=serial_ports())
 COMcombo = ttk.Combobox(tab1, state="readonly", textvariable= current_value)
-print(serial_ports())
 COMcombo['values'] = result
 detectar.place(x=30, y=20)
 COMcombo.place(x=20, y=60)
 
 velocidad = ttk.Button(tab1, text="Velocidad De Conexion")
 velocidad.place(x=200, y=20)
-velocidadCon = ttk.Combobox(tab1, state="readonly", values=['14400','19200','38400','57600','115200','230400','460800'])
+velocidadCon = ttk.Combobox(tab1, state="readonly", values=['9600','14400','19200','38400','57600','115200','230400','460800'])
 velocidadCon.place(x=200, y=60)
 
 camb = ttk.Button(tab1, text='Aplicar Cambios Al Puerto sleccionado', command=config)
@@ -185,6 +182,16 @@ selec = ttk.Spinbox(tab2, from_=1, to=3, increment=1, state="readonly")
 selec.place(x=40, y=30, width=130)
 button_selec = ttk.Button(tab2, text='Iniciar', command=seleccion)
 button_selec.place(x=180, y=30, width=135)
+
+                                     #etiquetas de indicaciones 
+ins0 = ttk.Label(tab2, text="Seleccione una opcion para habilitarla",font=("Comic Sans MS", 10),foreground="white")
+ins0.place(x=20,y=5)
+ins1 = ttk.Label(tab2, text="1) Ingrese un valor y su valor se le sumara una unidad",font=("Comic Sans MS", 10),foreground="white")
+ins1.place(x=20,y=85)
+ins2 = ttk.Label(tab2, text="2) Muestra el voltaje de una resistencia variable",font=("Comic Sans MS", 10),foreground="white")
+ins2.place(x=20,y=145)
+ins2 = ttk.Label(tab2, text="3) Modifica la intencidad del led ingresando un valor de 0 a 255",font=("Comic Sans MS", 10),foreground="white")
+ins2.place(x=20,y=205)
                                      #seleccion 1
 valor_suma = ttk.Entry(tab2, state="disabled")
 valor_suma.place(x=40,y=110, width=130)

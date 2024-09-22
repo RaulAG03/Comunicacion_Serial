@@ -49,7 +49,7 @@ void loop() {
       }
     }
 
-    // Comando para leer un valor de un sensor (en este caso ficticio)
+    // Comando para leer un valor 
     else if (command == "LEER") {
       float sensorValue = analogRead(A0);  // Leemos un valor del pin A0
       float vol = (sensorValue*5.0)/1023.0;
